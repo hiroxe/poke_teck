@@ -58,11 +58,6 @@ export const usePokemonStore = create<PokemonState>((set, get) => ({
 
     set({
       filteredPokemons: pokemons.filter((pokemon) => {
-        console.log(
-          "Filtering pokemon:",
-          pokemon.name,
-          pokemon.evolutionChainNames,
-        );
         const matchesSearch = pokemon.evolutionChainNames.some((name) =>
           name.toLowerCase().includes(searchFilter?.toLowerCase() ?? ""),
         );
@@ -76,8 +71,6 @@ export const usePokemonStore = create<PokemonState>((set, get) => ({
           pokemon.types
             .map((t) => t.type.name.toLowerCase())
             .some((type) => typefilter.includes(type));
-
-        console.log(matchesSearch, matchesGeneration, matchesType);
 
         return matchesSearch && matchesGeneration && matchesType;
       }),

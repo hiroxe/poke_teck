@@ -58,7 +58,7 @@ export const pokemonRouter = createTRPCRouter({
     }),
 
   list: publicProcedure.query(async () => {
-    const list = await client.listPokemons(0, 400); //MAX_POKEMON_COUNT
+    const list = await client.listPokemons(0, MAX_POKEMON_COUNT);
     const results = list.results ?? [];
 
     const detailed = (
