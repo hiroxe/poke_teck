@@ -16,8 +16,6 @@ function ClientApp({ initialPokemons }: { initialPokemons: IPokemon[] }) {
     init(initialPokemons);
   }, [initialPokemons, init, pokemons.length]);
 
-  init(initialPokemons);
-
   return (
     <div className="flex h-full w-full flex-col gap-2 overflow-y-auto p-3">
       <Filter />
