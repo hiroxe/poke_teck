@@ -4,7 +4,7 @@ import {
   generationSelectOptions,
   generationTypesOptions,
 } from "../constants/types";
-import { usePokemonStore } from "../stores/pokemon.store";
+import { usePokemonContext } from "~/context/PokemonProvider";
 
 export default function Filter() {
   const {
@@ -13,7 +13,7 @@ export default function Filter() {
     typefilter,
     setGenerationFilter,
     setTypeFilter,
-  } = usePokemonStore();
+  } = usePokemonContext();
 
   return (
     <div className="flex flex-row gap-2">
