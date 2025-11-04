@@ -10,7 +10,7 @@ type ItemListProps = {
 export default function ItemList({ pokemon, onClick }: ItemListProps) {
   return (
     <div
-      className="flex w-full max-w-[900px] cursor-pointer flex-col items-center gap-4 rounded-lg border bg-white p-5 transition hover:border-red-500 hover:bg-red-100 md:flex-row md:justify-between"
+      className="flex w-full max-w-[900px] cursor-pointer flex-col items-center gap-4 rounded-xl border bg-white p-5 shadow-md backdrop-blur-sm transition hover:border-red-500 hover:bg-red-50 md:flex-row md:justify-between"
       onClick={onClick}
     >
       <div className="flex flex-row items-center gap-4">
