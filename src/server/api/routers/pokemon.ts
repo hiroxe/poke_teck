@@ -145,10 +145,11 @@ export const assignEvolutionChainsToList = async (results: IPokemonList[]) => {
 };
 
 export const pokemonRouter = createTRPCRouter({
-  getByNameOrId: publicProcedure
+  getPokemonById: publicProcedure
     .input(z.string().min(1))
     .query(async ({ input }) => {
-      return client.getPokemonByName(input);
+      const pokemon = await client.getPokemonByName(input);
+      return pokemon as IPokemon;
     }),
 
   list: publicProcedure.query(async () => {

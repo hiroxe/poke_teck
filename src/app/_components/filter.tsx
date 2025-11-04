@@ -8,6 +8,7 @@ import { usePokemonContext } from "~/context/PokemonProvider";
 
 export default function Filter() {
   const {
+    searchFilter,
     setSearchFilter,
     generationFilter,
     typefilter,
@@ -16,18 +17,21 @@ export default function Filter() {
   } = usePokemonContext();
 
   return (
-    <div className="flex flex-row gap-2">
+    <div className="flex w-full max-w-[900px] flex-row justify-start gap-2">
       <input
-        className="h-10 rounded-sm border border-red-200 p-2 hover:border-red-300 focus:border-red-400 focus:outline-none"
+        className="h-10 w-full rounded-sm border border-red-200 p-2 hover:border-red-300 focus:border-red-400 focus:outline-none"
+        value={searchFilter}
         onChange={(e) => setSearchFilter(e.target.value)}
       />
       <Select
+        className="w-full"
         options={generationSelectOptions}
         multiple
         value={generationFilter}
         onChange={setGenerationFilter}
       />
       <Select
+        className="w-full"
         options={generationTypesOptions}
         multiple
         value={typefilter}

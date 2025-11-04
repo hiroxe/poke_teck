@@ -17,22 +17,22 @@ function ClientApp({ initialPokemons }: { initialPokemons: IPokemonList[] }) {
   }, [initialPokemons, init, pokemons.length]);
 
   return (
-    <div className="flex h-full w-full flex-col gap-2 overflow-y-auto p-3">
-      <Filter />
-      {filteredPokemons.map((pokemon) => (
-        <ItemList
-          key={pokemon.name}
-          pokemon={pokemon}
-          onClick={() => {
-            router.push(`/${pokemon.id}`);
-          }}
-        />
-      ))}
-      {filteredPokemons.length === 0 && (
-        <div className="flex h-[300px] w-full items-center justify-center text-2xl">
-          Pokemon not found
-        </div>
-      )}
+    <div
+      className="flex h-full min-h-screen w-full flex-col items-center justify-center gap-2 bg-fixed"
+      style={{ backgroundImage: "url('/background.png')" }}
+    >
+      <div className="sticky top-0 z-10 flex w-full items-center justify-center bg-white p-2">
+        <Filter />
+      </div>
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-start gap-2 overflow-y-auto">
+        {filteredPokemons.map((pokemon) => (
+          <ItemList
+            key={pokemon.name}
+            pokemon={pokemon}
+            onClick={() => router.push(`/${pokemon.id}`)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
