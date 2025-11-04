@@ -25,7 +25,7 @@ function ClientApp({ initialPokemons }: { initialPokemons: IPokemonList[] }) {
       <div className="sticky top-0 z-10 flex w-full items-center justify-center bg-white p-2">
         <Filter />
       </div>
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-start gap-3 overflow-y-auto">
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-start gap-3 overflow-y-auto p-3">
         {filteredPokemons.map((pokemon) => (
           <ItemList
             key={pokemon.name}

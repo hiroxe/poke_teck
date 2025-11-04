@@ -20,21 +20,21 @@ export default function Filter() {
     <div className="flex w-full max-w-[900px] flex-row justify-start gap-2">
       <input
         className="h-10 w-full rounded-sm border border-red-200 p-2 hover:border-red-300 focus:border-red-400 focus:outline-none"
-        value={searchFilter}
+        value={searchFilter ?? ""}
         onChange={(e) => setSearchFilter(e.target.value)}
       />
       <Select
         className="w-full"
         options={generationSelectOptions}
         multiple
-        value={generationFilter}
+        value={generationFilter ?? []}
         onChange={setGenerationFilter}
       />
       <Select
         className="w-full"
         options={generationTypesOptions}
         multiple
-        value={typefilter}
+        value={typefilter ?? []}
         onChange={setTypeFilter}
       />
     </div>
