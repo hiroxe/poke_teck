@@ -6,10 +6,9 @@ import {
   EvolutionClient,
   type ChainLink,
   type EvolutionChain,
-  type Type,
+  type PokemonSpecies,
 } from "pokenode-ts";
 import type {
-  EvolutionUrlChain,
   IPokemon,
   IPokemonList,
   IPokemonType,
@@ -32,33 +31,6 @@ const getSpeciesNames = (chain?: ChainLink, names: string[] = []): string[] => {
     chain.evolves_to.forEach((evo: ChainLink) => getSpeciesNames(evo, names));
   }
   return names;
-};
-
-const getEvolutionChains = async (
-  urls: string[],
-): Promise<EvolutionUrlChain[]> => {
-  const results = await Promise.all(
-    urls.map(async (url) => {
-      const response = await axios.get<EvolutionChain>(url);
-      const names = getSpeciesNames(response.data.chain);
-      return { url, names };
-    }),
-  );
-  return results;
-};
-
-const assignEvolutionData = (
-  pokemon: IPokemon,
-  evoChain: EvolutionUrlChain,
-): IPokemon => {
-  const { names } = evoChain;
-  const currentIndex = names.indexOf(pokemon.name);
-
-  pokemon.evolutionChainNames = names;
-  pokemon.preevolutions = names.filter((_, i) => i < currentIndex);
-  pokemon.evolutions = names.filter((_, i) => i > currentIndex);
-
-  return pokemon;
 };
 
 async function assignGenerations(results: IPokemonList[]) {
@@ -144,14 +116,78 @@ export const assignEvolutionChainsToList = async (results: IPokemonList[]) => {
   return results;
 };
 
-export const pokemonRouter = createTRPCRouter({
-  getPokemonById: publicProcedure
-    .input(z.string().min(1))
-    .query(async ({ input }) => {
-      const pokemon = await client.getPokemonByName(input);
-      return pokemon as IPokemon;
-    }),
+async function parsePokemonTypes(pokemon: IPokemon) {
+  if (!pokemon.types) return [];
 
+  const parsed = await Promise.all(
+    pokemon.types.map(async (t) => {
+      const typeDetail = (await client.getTypeByName(t.type.name)) as IType;
+      const sprite =
+        typeDetail?.sprites?.["generation-viii"]?.["sword-shield"]?.name_icon ??
+        "";
+
+      return { name: t.type.name, sprite };
+    }),
+  );
+
+  return parsed;
+}
+
+async function parseEvolutionData(pokemon: IPokemon) {
+  const species = await client.getPokemonSpeciesByName(pokemon.name);
+
+  if (!species.evolution_chain?.url) {
+    return {
+      evolutionChainNames: [],
+      preevolutions: [],
+      evolutions: [],
+    };
+  }
+  const evoResponse = await axios.get<EvolutionChain>(
+    species.evolution_chain.url,
+  );
+  const evolutionChainNames = getSpeciesNames(evoResponse.data.chain);
+  const currentIndex = evolutionChainNames.indexOf(pokemon.name);
+  if (currentIndex === -1) {
+    return {
+      evolutionChainNames,
+      preevolutions: [],
+      evolutions: [],
+    };
+  }
+  const preNames = evolutionChainNames.slice(0, currentIndex);
+  const postNames = evolutionChainNames.slice(currentIndex + 1);
+
+  const otherNames = [...preNames, ...postNames];
+  const chainPokemons = await Promise.all(
+    otherNames.map(async (name) => {
+      const p = await client.getPokemonByName(name);
+      return { name, sprite: p.sprites.front_default ?? "", id: p.id };
+    }),
+  );
+
+  const findSprite = (name: string) =>
+    chainPokemons.find((p) => p.name === name)?.sprite ?? "";
+
+  const findId = (name: string) =>
+    chainPokemons.find((p) => p.name === name)?.id ?? 0;
+
+  return {
+    evolutionChainNames,
+    preevolutions: preNames.map((name) => ({
+      name,
+      sprite: findSprite(name),
+      id: findId(name),
+    })),
+    evolutions: postNames.map((name) => ({
+      name,
+      sprite: findSprite(name),
+      id: findId(name),
+    })),
+  };
+}
+
+export const pokemonRouter = createTRPCRouter({
   list: publicProcedure.query(async () => {
     const list = await client.listPokemons(0, MAX_POKEMON_COUNT);
     const results = (list.results as IPokemonList[]) ?? [];
@@ -165,6 +201,28 @@ export const pokemonRouter = createTRPCRouter({
 
     return results;
   }),
+
+  getPokemonById: publicProcedure
+    .input(z.string().min(1))
+    .query(async ({ input }) => {
+      const [pokemon, species] = (await Promise.all([
+        client.getPokemonByName(input),
+        client.getPokemonSpeciesByName(input),
+      ])) as [IPokemon, PokemonSpecies];
+
+      pokemon.parsedTypes = await parsePokemonTypes(pokemon);
+      pokemon.generation = (species.generation?.name ?? "")
+        .replace(GENERATION_TEXT, "")
+        .toUpperCase();
+
+      const evolutionData = await parseEvolutionData(pokemon);
+
+      pokemon.evolutionChainNames = evolutionData.evolutionChainNames;
+      pokemon.preevolutions = evolutionData.preevolutions;
+      pokemon.evolutions = evolutionData.evolutions;
+
+      return pokemon;
+    }),
 });
 
 export type PokemonRouter = typeof pokemonRouter;
