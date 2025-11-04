@@ -1,12 +1,12 @@
 "use client";
 import ItemList from "./_components/itemList";
-import type { IPokemon } from "~/types/pokemon";
+import type { IPokemonList } from "~/types/pokemon";
 import Filter from "./_components/filter";
 import { usePokemonContext } from "~/context/PokemonProvider";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-function ClientApp({ initialPokemons }: { initialPokemons: IPokemon[] }) {
+function ClientApp({ initialPokemons }: { initialPokemons: IPokemonList[] }) {
   const { filteredPokemons, init, pokemons } = usePokemonContext();
   const router = useRouter();
 

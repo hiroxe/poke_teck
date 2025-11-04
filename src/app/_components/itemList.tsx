@@ -1,9 +1,9 @@
 import Image from "next/image";
 import React from "react";
-import type { IPokemon } from "~/types/pokemon";
+import type { IPokemonList } from "~/types/pokemon";
 
 type ItemListProps = {
-  pokemon: IPokemon;
+  pokemon: IPokemonList;
   onClick?: () => void;
 };
 
@@ -14,26 +14,26 @@ export default function ItemList({ pokemon, onClick }: ItemListProps) {
       onClick={onClick}
     >
       <div className="flex flex-row items-center gap-2">
-        <Image
-          src={pokemon.sprites.front_default ?? ""}
-          alt={pokemon.name}
-          width={60}
-          height={60}
-        />
         <h2 className="text-lg font-bold capitalize md:text-2xl">
           {pokemon.name}
         </h2>
       </div>
       <div className="flex flex-row items-center gap-2">
-        <p className="flex h-9 w-9 items-center justify-center rounded-full border">
+        <div className="flex flex-row gap-2">
+          {pokemon.types.map((type) => (
+            <div key={type.name} className="flex flex-col items-center">
+              <Image
+                src={type.sprite}
+                alt={type.name}
+                width={120}
+                height={40}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border">
           {pokemon.generation}
-        </p>
-        <p>
-          <span className="font-semibold">Type:</span>{" "}
-          {pokemon.types && pokemon.types.length > 0
-            ? pokemon.types.map((t) => t.type?.name ?? "").join(", ")
-            : "Unknown"}
-        </p>
+        </div>
       </div>
     </div>
   );

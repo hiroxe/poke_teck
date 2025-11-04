@@ -8,20 +8,20 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import type { IPokemon } from "~/types/pokemon";
+import type { IPokemonList } from "~/types/pokemon";
 
 type PokemonState = {
-  pokemons: IPokemon[];
-  filteredPokemons: IPokemon[];
+  pokemons: IPokemonList[];
+  filteredPokemons: IPokemonList[];
   searchFilter?: string;
   typefilter: string[];
   generationFilter: string[];
   setSearchFilter: (filter?: string) => void;
   setTypeFilter: (types: string[]) => void;
   setGenerationFilter: (generations: string[]) => void;
-  setPokemons: (items: IPokemon[]) => void;
+  setPokemons: (items: IPokemonList[]) => void;
   clear: () => void;
-  init: (initial?: IPokemon[]) => void;
+  init: (initial?: IPokemonList[]) => void;
   filter: () => void;
 };
 
@@ -29,8 +29,8 @@ type PokemonState = {
 const PokemonContext = createContext<PokemonState | null>(null);
 
 export function PokemonProvider({ children }: { children: React.ReactNode }) {
-  const [pokemons, setPokemonsState] = useState<IPokemon[]>([]);
-  const [filteredPokemons, setFilteredPokemons] = useState<IPokemon[]>([]);
+  const [pokemons, setPokemonsState] = useState<IPokemonList[]>([]);
+  const [filteredPokemons, setFilteredPokemons] = useState<IPokemonList[]>([]);
   const [searchFilter, setSearchFilterState] = useState<string | undefined>(
     undefined,
   );
@@ -38,11 +38,11 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
   const [generationFilter, setGenerationFilterState] = useState<string[]>([]);
 
   const computeFiltered = useCallback(() => {
-    const sf = searchFilter?.toLowerCase() ?? "";
+    const filter = searchFilter?.toLowerCase() ?? "";
     const typesLower = typefilter.map((t) => t.toLowerCase());
     const gens = generationFilter;
 
-    if (!sf && typesLower.length === 0 && gens.length === 0) {
+    if (!filter && typesLower.length === 0 && gens.length === 0) {
       setFilteredPokemons(pokemons);
       return;
     }
@@ -51,18 +51,16 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
 
     const result = pokemons.filter((pokemon) => {
       const matchesSearch =
-        sf === "" ||
+        !filter ||
         pokemon.evolutionChainNames.some((name) =>
-          name.toLowerCase().includes(sf),
+          name.toLowerCase().includes(filter),
         );
 
       const matchesGeneration =
         gens.length === 0 ||
         (pokemon.generation != null && gens.includes(pokemon.generation));
 
-      const pokemonTypesLower = pokemon.types.map((t) =>
-        t.type.name.toLowerCase(),
-      );
+      const pokemonTypesLower = pokemon.types.map((t) => t.name.toLowerCase());
       const matchesType =
         typeSet.size === 0 || pokemonTypesLower.some((t) => typeSet.has(t));
 
@@ -76,7 +74,7 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
     computeFiltered();
   }, [computeFiltered]);
 
-  const setPokemons = useCallback((items: IPokemon[]) => {
+  const setPokemons = useCallback((items: IPokemonList[]) => {
     setPokemonsState(items);
   }, []);
 
@@ -101,7 +99,7 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const init = useCallback(
-    (initial?: IPokemon[]) => {
+    (initial?: IPokemonList[]) => {
       if (!initial || initial.length === 0) return;
       if (pokemons.length === 0) {
         setPokemonsState(initial);

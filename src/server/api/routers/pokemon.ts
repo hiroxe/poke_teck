@@ -2,13 +2,24 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import {
   PokemonClient,
+  GameClient,
+  EvolutionClient,
   type ChainLink,
   type EvolutionChain,
+  type Type,
 } from "pokenode-ts";
-import type { EvolutionUrlChain, IPokemon } from "~/types/pokemon";
+import type {
+  EvolutionUrlChain,
+  IPokemon,
+  IPokemonList,
+  IPokemonType,
+  IType,
+} from "~/types/pokemon";
 import axios from "axios";
 
 const client = new PokemonClient();
+const gameClient = new GameClient();
+const evolutionClient = new EvolutionClient();
 const GENERATION_TEXT = "generation-";
 const MAX_POKEMON_COUNT = 1328;
 
@@ -50,6 +61,89 @@ const assignEvolutionData = (
   return pokemon;
 };
 
+async function assignGenerations(results: IPokemonList[]) {
+  const generations = await gameClient.listGenerations();
+
+  const generationDetails = await Promise.all(
+    generations.results.map((g) => gameClient.getGenerationByName(g.name)),
+  );
+
+  const generationMap = new Map<string, string>();
+
+  for (const gen of generationDetails) {
+    const genCode = gen.name.replace(GENERATION_TEXT, "").toUpperCase();
+
+    for (const species of gen.pokemon_species) {
+      generationMap.set(species.name, genCode);
+    }
+  }
+
+  results.forEach((pokemon) => {
+    pokemon.generation = generationMap.get(pokemon.name) ?? "";
+  });
+
+  return results;
+}
+
+async function assignTypes(results: IPokemonList[]) {
+  const typesList = await client.listTypes(0, 50);
+
+  const typeDetails = await Promise.all(
+    typesList.results.map(async (t) => {
+      const type = await client.getTypeByName(t.name);
+      return type as IType;
+    }),
+  );
+  const typeMap = new Map<string, IPokemonType[]>();
+
+  for (const type of typeDetails) {
+    for (const poke of type.pokemon) {
+      const name = poke.pokemon.name;
+      const existing = typeMap.get(name) ?? [];
+      const spriteUrl =
+        type.sprites?.["generation-viii"]?.["sword-shield"]?.name_icon ?? "";
+
+      existing.push({
+        name: type.name,
+        sprite: spriteUrl,
+      });
+      typeMap.set(name, existing);
+    }
+  }
+
+  results.forEach((pokemon) => {
+    pokemon.types = typeMap.get(pokemon.name) ?? [];
+  });
+
+  return results;
+}
+
+export const assignEvolutionChainsToList = async (results: IPokemonList[]) => {
+  const evolutionList = await evolutionClient.listEvolutionChains(0, 600);
+  const urls = evolutionList.results.map((chain) => chain.url);
+
+  const chainsData = await Promise.all(
+    urls.map(async (url) => {
+      const response = await axios.get<EvolutionChain>(url);
+      const names = getSpeciesNames(response.data.chain);
+      return { url, names };
+    }),
+  );
+
+  results.forEach((pokemon) => {
+    const chaindFound = chainsData.find((chain) =>
+      chain.names.includes(pokemon.name),
+    );
+    if (chaindFound) {
+      pokemon.evolutionChainNames = chaindFound.names;
+    } else {
+      pokemon.evolutionChainNames = [];
+    }
+  });
+
+  return results;
+};
+
 export const pokemonRouter = createTRPCRouter({
   getByNameOrId: publicProcedure
     .input(z.string().min(1))
@@ -59,56 +153,16 @@ export const pokemonRouter = createTRPCRouter({
 
   list: publicProcedure.query(async () => {
     const list = await client.listPokemons(0, MAX_POKEMON_COUNT);
-    const results = list.results ?? [];
-
-    const detailed = (
-      await Promise.all(
-        results.map(async (r) => {
-          try {
-            const [pokemon, species] = await Promise.all([
-              client.getPokemonByName(r.name),
-              client.getPokemonSpeciesByName(r.name),
-            ]);
-
-            const generation = species?.generation?.name ?? null;
-
-            return {
-              ...pokemon,
-              generation:
-                generation.replace(GENERATION_TEXT, "").toUpperCase() ?? null,
-              evolutionChainUrl: species.evolution_chain?.url ?? null,
-              evolutionChainNames: [] as string[],
-            } as IPokemon;
-          } catch (err) {
-            return null;
-          }
-        }),
-      )
-    )
-      .filter((p): p is IPokemon => p !== null)
-      .sort((a, b) => a.id - b.id);
-
-    const evolutionChainUrls = Array.from(
-      new Set(
-        detailed
-          .map((p) => p.evolutionChainUrl)
-          .filter((url): url is string => url !== null),
-      ),
-    );
-
-    const evolutionChains = await getEvolutionChains(evolutionChainUrls);
-
-    detailed.forEach((pokemon) => {
-      const evoChain = evolutionChains.find(
-        (ec) => ec.url === pokemon.evolutionChainUrl,
-      );
-
-      if (evoChain) {
-        return assignEvolutionData(pokemon, evoChain);
-      }
+    const results = (list.results as IPokemonList[]) ?? [];
+    results.forEach((pokemon, index) => {
+      pokemon.id = index + 1;
     });
 
-    return detailed;
+    await assignGenerations(results);
+    await assignTypes(results);
+    await assignEvolutionChainsToList(results);
+
+    return results;
   }),
 });
 
