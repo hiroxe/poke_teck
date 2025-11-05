@@ -11,14 +11,48 @@ import { MAX_EVOLUTION_CHAIN } from "./constants";
 const client = new PokemonClient();
 const evolutionClient = new EvolutionClient();
 
-const getSpeciesNames = (chain?: ChainLink, names: string[] = []): string[] => {
-  if (!chain) return names;
-  if (chain?.species?.name) {
-    names.push(chain.species.name);
-  }
-  if (chain?.evolves_to?.length) {
-    chain.evolves_to.forEach((evo: ChainLink) => getSpeciesNames(evo, names));
-  }
+const getSpeciesLines = (chain?: ChainLink): string[][] => {
+  if (!chain) return [];
+
+  const result: string[][] = [];
+
+  const searchEvolutionRoute = (
+    node: ChainLink | undefined | null,
+    path: string[],
+  ) => {
+    if (!node) return;
+
+    const name = node.species?.name ?? "";
+    const newPath = name.trim() !== "" ? [...path, name] : [...path];
+
+    const children = node.evolves_to ?? [];
+    if (children.length === 0) {
+      result.push(newPath);
+      return;
+    }
+    children.forEach((child) => searchEvolutionRoute(child, newPath));
+  };
+
+  searchEvolutionRoute(chain, []);
+  return result;
+};
+
+const getEvolutionChainNamesForPokemon = (
+  pokemonName: string,
+  evolutionLines: string[][],
+): string[] => {
+  const relevantLines = evolutionLines.filter((line) =>
+    line.includes(pokemonName),
+  );
+  const names = Array.from(
+    new Set(
+      relevantLines
+        .flat()
+        .map((n) => n.trim())
+        .filter((n) => n !== ""),
+    ),
+  );
+
   return names;
 };
 
@@ -35,7 +69,13 @@ export async function parseEvolutionData(pokemon: IPokemon) {
   const evoResponse = await axios.get<EvolutionChain>(
     species.evolution_chain.url,
   );
-  const evolutionChainNames = getSpeciesNames(evoResponse.data.chain);
+
+  const evolutionLinesParsed = getSpeciesLines(evoResponse.data.chain);
+
+  const evolutionChainNames = getEvolutionChainNamesForPokemon(
+    pokemon.name,
+    evolutionLinesParsed,
+  );
   const currentIndex = evolutionChainNames.indexOf(pokemon.name);
   if (currentIndex === -1) {
     return {
@@ -86,17 +126,21 @@ export const assignEvolutionChainsToList = async (results: IPokemonList[]) => {
   const chainsData = await Promise.all(
     urls.map(async (url) => {
       const response = await axios.get<EvolutionChain>(url);
-      const names = getSpeciesNames(response.data.chain);
+      const names = getSpeciesLines(response.data.chain);
       return { url, names };
     }),
   );
 
   results.forEach((pokemon) => {
-    const chaindFound = chainsData.find((chain) =>
-      chain.names.includes(pokemon.name),
+    const chainFound = chainsData.find((chain) =>
+      chain.names.some((line) => line.includes(pokemon.name)),
     );
-    if (chaindFound) {
-      pokemon.evolutionChainNames = chaindFound.names;
+
+    if (chainFound) {
+      pokemon.evolutionChainNames = getEvolutionChainNamesForPokemon(
+        pokemon.name,
+        chainFound.names,
+      );
     } else {
       pokemon.evolutionChainNames = [];
     }

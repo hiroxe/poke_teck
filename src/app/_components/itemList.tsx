@@ -17,7 +17,7 @@ export default function ItemList({ pokemon, onClick }: ItemListProps) {
         <h2 className="text-lg font-bold capitalize md:text-2xl">
           {pokemon.name}
         </h2>
-        <div className="flex hidden max-w-[400px] flex-row gap-2 overflow-hidden text-ellipsis md:flex">
+        <div className="flex hidden max-w-[400px] flex-row flex-wrap gap-2 overflow-hidden text-ellipsis md:flex">
           {pokemon.evolutionChainNames.length > 1 &&
             pokemon.evolutionChainNames.map((name, index) => (
               <div key={name} className="flex flex-row items-center gap-2">
@@ -27,7 +27,7 @@ export default function ItemList({ pokemon, onClick }: ItemListProps) {
                   {name}
                 </p>
                 <div>
-                  {index < pokemon.evolutionChainNames.length - 1 ? "→" : ""}
+                  {index < pokemon.evolutionChainNames.length - 1 ? "/" : ""}
                 </div>
               </div>
             ))}

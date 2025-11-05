@@ -19,7 +19,7 @@ export function EvolutionList({ title, pokemons }: EvolutionListProps) {
     <div className="flex w-full flex-row items-center justify-between">
       <p className="text-md font-semibold">{title}</p>
 
-      <div className="flex flex-row gap-2">
+      <div className="flex flex-row flex-wrap gap-2">
         {pokemons.map((poke) => (
           <Image
             key={poke.name}
