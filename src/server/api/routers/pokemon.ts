@@ -29,7 +29,7 @@ export const pokemonRouter = createTRPCRouter({
       await assignTypes(results);
       await assignEvolutionChainsToList(results);
 
-      return results;
+      return results.filter((fil) => fil.generation);
     } catch (e) {
       console.error("pokemon.list error:", e);
       throw new TRPCError({
