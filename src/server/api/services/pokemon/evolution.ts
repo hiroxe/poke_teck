@@ -11,7 +11,7 @@ import { MAX_EVOLUTION_CHAIN } from "./constants";
 const client = new PokemonClient();
 const evolutionClient = new EvolutionClient();
 
-const getSpeciesLines = (chain?: ChainLink): string[][] => {
+export const getSpeciesLines = (chain?: ChainLink): string[][] => {
   if (!chain) return [];
 
   const result: string[][] = [];
