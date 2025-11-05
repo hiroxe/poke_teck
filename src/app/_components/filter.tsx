@@ -26,26 +26,28 @@ export default function Filter() {
   }));
 
   return (
-    <div className="flex w-full max-w-[900px] flex-row items-center justify-start gap-2">
+    <div className="flex w-full max-w-[900px] flex-col items-center justify-start gap-2 md:flex-row">
       <input
         className="h-10 w-full rounded-sm border border-red-200 p-2 hover:border-red-300 focus:border-red-400 focus:outline-none"
         value={searchFilter ?? ""}
         onChange={(e) => setSearchFilter(e.target.value)}
       />
-      <Select
-        className="w-full"
-        options={generationSelectOptions}
-        multiple
-        value={generationFilter ?? []}
-        onChange={setGenerationFilter}
-      />
-      <Select
-        className="w-full capitalize"
-        options={typeSelectOptions}
-        multiple
-        value={typefilter ?? []}
-        onChange={setTypeFilter}
-      />
+      <div className="flex w-full flex-row items-center gap-2">
+        <Select
+          className="w-full"
+          options={generationSelectOptions}
+          multiple
+          value={generationFilter ?? []}
+          onChange={setGenerationFilter}
+        />
+        <Select
+          className="w-full capitalize"
+          options={typeSelectOptions}
+          multiple
+          value={typefilter ?? []}
+          onChange={setTypeFilter}
+        />
+      </div>
       <p className="cursor-pointer font-bold" onClick={clearFilters}>
         CLEAR
       </p>
