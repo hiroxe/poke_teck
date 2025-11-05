@@ -46,7 +46,7 @@ function PokemonClientDetail({ pokemon }: { pokemon: IPokemon }) {
               />
             </div>
           </div>
-          <div className="flex w-[250px] flex-col gap-5 p-5">
+          <div className="flex w-[300px] flex-col gap-5 p-5">
             <div className="flex flex-row gap-3">
               {pokemon.parsedTypes.map((type, index) => (
                 <Image
