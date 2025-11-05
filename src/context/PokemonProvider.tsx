@@ -23,6 +23,7 @@ type PokemonState = {
   setGenerationFilter: (generations: string[]) => void;
   setPokemons: (items: IPokemonList[]) => void;
   clear: () => void;
+  clearFilters: () => void;
   init: (initial?: IPokemonList[]) => void;
   filter: () => void;
 };
@@ -96,7 +97,13 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
 
   const clear = useCallback(() => {
     setPokemonsState([]);
-    setFilteredPokemons([]);
+    setFilteredPokemons(pokemons);
+    setSearchFilterState(undefined);
+    setTypeFilterState([]);
+    setGenerationFilterState([]);
+  }, []);
+
+  const clearFilters = useCallback(() => {
     setSearchFilterState(undefined);
     setTypeFilterState([]);
     setGenerationFilterState([]);
@@ -156,6 +163,7 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
       setTypes,
       setGenerations,
       clear,
+      clearFilters,
       init,
       filter,
     }),
@@ -174,6 +182,7 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
       setTypes,
       setGenerations,
       clear,
+      clearFilters,
       init,
       filter,
     ],
