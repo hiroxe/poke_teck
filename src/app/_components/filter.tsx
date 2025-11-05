@@ -38,6 +38,7 @@ export default function Filter() {
           options={generationSelectOptions}
           multiple
           value={generationFilter ?? []}
+          placeholder="Select generation..."
           onChange={setGenerationFilter}
         />
         <Select
@@ -45,6 +46,7 @@ export default function Filter() {
           options={typeSelectOptions}
           multiple
           value={typefilter ?? []}
+          placeholder="Select type..."
           onChange={setTypeFilter}
         />
       </div>
