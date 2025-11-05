@@ -1,9 +1,5 @@
 import React from "react";
 import { Select } from "./select";
-import {
-  generationSelectOptions,
-  generationTypesOptions,
-} from "../constants/types";
 import { usePokemonContext } from "~/context/PokemonProvider";
 
 export default function Filter() {
@@ -12,9 +8,21 @@ export default function Filter() {
     setSearchFilter,
     generationFilter,
     typefilter,
+    generations,
+    types,
     setGenerationFilter,
     setTypeFilter,
   } = usePokemonContext();
+
+  const generationSelectOptions = generations.map((gen) => ({
+    label: `Gen ${gen}`,
+    value: gen,
+  }));
+
+  const typeSelectOptions = types.map((type) => ({
+    label: type,
+    value: type,
+  }));
 
   return (
     <div className="flex w-full max-w-[900px] flex-row justify-start gap-2">
@@ -31,8 +39,8 @@ export default function Filter() {
         onChange={setGenerationFilter}
       />
       <Select
-        className="w-full"
-        options={generationTypesOptions}
+        className="w-full capitalize"
+        options={typeSelectOptions}
         multiple
         value={typefilter ?? []}
         onChange={setTypeFilter}

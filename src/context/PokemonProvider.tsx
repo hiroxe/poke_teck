@@ -12,6 +12,8 @@ import type { IPokemonList } from "~/types/pokemon";
 
 type PokemonState = {
   pokemons: IPokemonList[];
+  types: string[];
+  generations: string[];
   filteredPokemons: IPokemonList[];
   searchFilter?: string;
   typefilter: string[];
@@ -30,6 +32,8 @@ const PokemonContext = createContext<PokemonState | null>(null);
 
 export function PokemonProvider({ children }: { children: React.ReactNode }) {
   const [pokemons, setPokemonsState] = useState<IPokemonList[]>([]);
+  const [types, setTypes] = useState<string[]>([]);
+  const [generations, setGenerations] = useState<string[]>([]);
   const [filteredPokemons, setFilteredPokemons] = useState<IPokemonList[]>([]);
   const [searchFilter, setSearchFilterState] = useState<string | undefined>(
     undefined,
@@ -103,6 +107,30 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
       if (!initial || initial.length === 0) return;
       if (pokemons.length === 0) {
         setPokemonsState(initial);
+        const allTypes = [
+          ...new Set(initial.flatMap((p) => p.types.map((t) => t.name))),
+        ];
+        setTypes(allTypes);
+
+        const uniqueTypes = [
+          ...new Set(
+            initial.flatMap((pokemon) =>
+              pokemon.types
+                .map((type) => type.name)
+                .filter((type) => !!type.trim()),
+            ),
+          ),
+        ];
+        setTypes(uniqueTypes);
+
+        const allGenerations = [
+          ...new Set(
+            initial
+              .map((pokemon) => pokemon.generation)
+              .filter((generation) => !!generation.trim()),
+          ),
+        ];
+        setGenerations(allGenerations);
       }
     },
     [pokemons.length],
@@ -118,11 +146,15 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
       filteredPokemons,
       searchFilter,
       typefilter,
+      generations,
+      types,
       generationFilter,
       setSearchFilter,
       setTypeFilter,
       setGenerationFilter,
       setPokemons,
+      setTypes,
+      setGenerations,
       clear,
       init,
       filter,
@@ -132,11 +164,15 @@ export function PokemonProvider({ children }: { children: React.ReactNode }) {
       filteredPokemons,
       searchFilter,
       typefilter,
+      generations,
+      types,
       generationFilter,
       setSearchFilter,
       setTypeFilter,
       setGenerationFilter,
       setPokemons,
+      setTypes,
+      setGenerations,
       clear,
       init,
       filter,
