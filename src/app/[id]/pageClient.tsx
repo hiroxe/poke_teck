@@ -15,14 +15,14 @@ function PokemonClientDetail({ pokemon }: { pokemon: IPokemon }) {
   };
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-5 p-3 md:p-8">
+    <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-3 md:p-8">
       <div
         className="pointer-events-none fixed inset-0 -z-10 bg-cover bg-center opacity-20 grayscale-[50%] saturate-75"
         style={{ backgroundImage: "url('/background.png')" }}
       />
       <div className="flex flex-col gap-5 bg-white p-5">
         <div
-          className="flex cursor-pointer items-center gap-2"
+          className="flex cursor-pointer items-center gap-2 font-semibold"
           onClick={handleClick}
         >
           {loading ? (
@@ -31,7 +31,7 @@ function PokemonClientDetail({ pokemon }: { pokemon: IPokemon }) {
             "BACK"
           )}
         </div>
-        <div className="flex h-fit flex-col gap-3 md:h-[250px] md:flex-row">
+        <div className="flex h-fit flex-col gap-3 sm:h-[250px] sm:flex-row">
           <div className="flex flex-col items-center">
             <p className="p-4 text-3xl font-bold capitalize">{pokemon?.name}</p>
             <div className="border-neutral-1000 relative rounded-lg border">
@@ -46,7 +46,7 @@ function PokemonClientDetail({ pokemon }: { pokemon: IPokemon }) {
               />
             </div>
           </div>
-          <div className="flex w-[300px] flex-col gap-5 p-5">
+          <div className="flex w-[250px] flex-col gap-5 p-5">
             <div className="flex flex-row gap-3">
               {pokemon.parsedTypes.map((type, index) => (
                 <Image
